@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-release:
-    runs-on: macos-latest
+  release:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -18,14 +18,6 @@ jobs:
       - name: Read version
         id: version
         run: echo "version=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_OUTPUT
-
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Build
-        run: bash build.sh
 
       - name: Zip .app
         run: |

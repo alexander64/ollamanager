@@ -2,7 +2,6 @@
 bin/
 obj/
 publish/
-dist/
 
 # macOS
 .DS_Store
