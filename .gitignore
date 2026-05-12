@@ -2,6 +2,10 @@
 bin/
 obj/
 publish/
+dist/
+
+# Cache Python standalone (scaricato una volta, non committare)
+.build_cache/
 
 # macOS
 .DS_Store

@@ -139,12 +139,35 @@ public class ManagedProcess : IDisposable
         catch { return []; }
     }
 
+    /// <summary>
+    /// Returns the bin/ directory of the Python runtime bundled inside the .app,
+    /// or null when running outside the bundle (e.g. during development).
+    /// Path: .app/Contents/MacOS/OllamaManager → .app/Contents/Resources/python/bin
+    /// </summary>
+    public static string? FindBundledPythonBin()
+    {
+        try
+        {
+            var exe = Environment.ProcessPath ?? "";
+            if (string.IsNullOrEmpty(exe)) return null;
+            var macosDir    = System.IO.Path.GetDirectoryName(exe) ?? "";
+            var contentsDir = System.IO.Path.GetDirectoryName(macosDir) ?? "";
+            var pythonBin   = System.IO.Path.Combine(contentsDir, "Resources", "python", "bin");
+            return System.IO.Directory.Exists(pythonBin) ? pythonBin : null;
+        }
+        catch { return null; }
+    }
+
     public static string BuildPath()
     {
         var home       = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var pyenvShims = System.IO.Path.Combine(home, ".pyenv", "shims");
         var pyenvBin   = System.IO.Path.Combine(home, ".pyenv", "bin");
-        return $"{pyenvShims}:{pyenvBin}:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+        var systemPath = $"{pyenvShims}:{pyenvBin}:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+
+        // Il Python bundled ha la precedenza — copre mlx_lm.server, hf, pip3, etc.
+        var bundledBin = FindBundledPythonBin();
+        return bundledBin != null ? $"{bundledBin}:{systemPath}" : systemPath;
     }
 
     // Resolves a bare command name to its absolute path by searching BuildPath() directories.
