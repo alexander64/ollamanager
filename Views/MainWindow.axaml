@@ -1,0 +1,665 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OllamaManager.ViewModels"
+        xmlns:models="using:OllamaManager.Models"
+        xmlns:conv="using:OllamaManager.Converters"
+        x:Class="OllamaManager.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+
+        Title="Ollama Manager"
+        Icon="avares://OllamaManager/Assets/AppIcon.png"
+        Width="920"
+        MinWidth="760"
+        Height="680"
+        MinHeight="500"
+        CanResize="True"
+        Background="#0D0D10"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome">
+
+    <Window.Resources>
+        <conv:BoolToBrushConverter x:Key="BoolToBrush" />
+        <conv:BoolToStatusConverter x:Key="BoolToStatus" />
+        <conv:IntEqualConverter x:Key="IntEqual" />
+    </Window.Resources>
+
+    <Window.Styles>
+
+        <!-- ── Generic ─────────────────────────────────────────────────────── -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#555562" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="Foreground" Value="#F2F2F7" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style Selector="TextBlock.page-header">
+            <Setter Property="Foreground" Value="#F2F2F7" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#0A0A0F" />
+            <Setter Property="Foreground" Value="#F2F2F7" />
+            <Setter Property="FontFamily" Value="Menlo,Courier New,monospace" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#2C2C38" />
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#1C1C26" />
+            <Setter Property="Foreground" Value="#8E8E9C" />
+            <Setter Property="Padding" Value="13,8" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#2C2C38" />
+        </Style>
+
+        <Style Selector="Button.start">
+            <Setter Property="Background" Value="#071A09" />
+            <Setter Property="Foreground" Value="#30D158" />
+            <Setter Property="BorderBrush" Value="#143620" />
+        </Style>
+
+        <Style Selector="Button.stop">
+            <Setter Property="Background" Value="#1C0707" />
+            <Setter Property="Foreground" Value="#FF453A" />
+            <Setter Property="BorderBrush" Value="#381010" />
+        </Style>
+
+        <Style Selector="Button.blue">
+            <Setter Property="Background" Value="#06121E" />
+            <Setter Property="Foreground" Value="#0A84FF" />
+            <Setter Property="BorderBrush" Value="#102240" />
+        </Style>
+
+        <Style Selector="Button.ghost">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#0A84FF" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="2,4" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+
+        <Style Selector="Button.remove">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#44444E" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+
+        <Style Selector="Button.action-sm">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+
+        <!-- ── Sidebar nav ──────────────────────────────────────────────────── -->
+        <Style Selector="ListBox.nav">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+
+        <Style Selector="ListBox.nav ListBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#8E8E9C" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style Selector="ListBox.nav ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#2A2A34" />
+        </Style>
+
+        <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1E1E2E" />
+        </Style>
+
+        <Style Selector="ListBox.nav ListBoxItem:selected">
+            <Setter Property="Foreground" Value="#F2F2F7" />
+        </Style>
+
+        <!-- ── TabControl ───────────────────────────────────────────────────── -->
+        <Style Selector="TabControl">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+
+        <Style Selector="TabItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#8E8E9C" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="14,8" />
+        </Style>
+
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#F2F2F7" />
+        </Style>
+
+    </Window.Styles>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <Grid ColumnDefinitions="160,*" Margin="0,28,0,0">
+
+        <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+        <Border Grid.Column="0"
+                Background="#14141C"
+                BorderBrush="#1C1C26"
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <!-- App name -->
+                <StackPanel DockPanel.Dock="Top" Margin="20,20,20,16" Spacing="2">
+                    <TextBlock Text="Ollama" Foreground="#F2F2F7" FontSize="15" FontWeight="Bold"/>
+                    <TextBlock Text="Manager" Foreground="#555562" FontSize="11"/>
+                </StackPanel>
+
+                <!-- Nav items -->
+                <ListBox Classes="nav" SelectedIndex="{Binding SelectedPage}">
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="⚡" FontSize="15" VerticalAlignment="Center"/>
+                            <TextBlock Text="Servizi" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="⬡" FontSize="15" VerticalAlignment="Center"/>
+                            <TextBlock Text="Modelli" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="⚙" FontSize="15" VerticalAlignment="Center"/>
+                            <TextBlock Text="Impostazioni" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- ── Content area ─────────────────────────────────────────────────── -->
+        <Panel Grid.Column="1">
+
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- PAGE 0 — SERVIZI                                              -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <ScrollViewer IsVisible="{Binding SelectedPage, Converter={StaticResource IntEqual}, ConverterParameter=0}">
+                <StackPanel Margin="20,16,20,24" Spacing="12">
+
+                    <!-- ─── OLLAMA ─────────────────────────────────────────── -->
+                    <Border Background="#12121A" CornerRadius="14" Padding="20"
+                            BorderBrush="#20202C" BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <Ellipse Width="8" Height="8" Fill="{Binding OllamaRunning, Converter={StaticResource BoolToBrush}}" />
+                                    <TextBlock Text="OLLAMA" Classes="section-header" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding OllamaRunning, Converter={StaticResource BoolToStatus}}"
+                                           Foreground="#555562" FontSize="11" VerticalAlignment="Center" />
+                            </Grid>
+                            <Rectangle Height="1" Fill="#1C1C28" Margin="-20,0" />
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Classes="start" Content="▶  Avvia" Margin="0,0,8,4" Command="{Binding StartOllamaCommand}" />
+                                <Button Classes="stop"  Content="■  Ferma" Margin="0,0,8,4" Command="{Binding StopOllamaCommand}" />
+                                <Button Content="Pulisci log" Margin="0,0,0,4" Command="{Binding ClearOllamaLogCommand}" />
+                            </WrapPanel>
+                            <TextBox x:Name="OllamaLogBox"
+                                     Text="{Binding OllamaLog, Mode=OneWay}"
+                                     IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                                     Height="160" Background="#07070C" Foreground="#2DB84B"
+                                     FontFamily="Menlo,Courier New,monospace" FontSize="11"
+                                     BorderThickness="1" BorderBrush="#16161F"
+                                     Padding="12" CornerRadius="10" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ─── MLX LM / VLM ──────────────────────────────────── -->
+                    <Border Background="#12121A" CornerRadius="14" Padding="20"
+                            BorderBrush="#20202C" BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <Ellipse Width="8" Height="8" Fill="{Binding MlxRunning, Converter={StaticResource BoolToBrush}}" />
+                                    <TextBlock Text="MLX" Classes="section-header" />
+                                    <Border Background="#1A0A2E" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding MlxEngineName}" FontSize="10" Foreground="#BF5AF2" FontWeight="Bold"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding MlxRunning, Converter={StaticResource BoolToStatus}}"
+                                           Foreground="#555562" FontSize="11" VerticalAlignment="Center" />
+                            </Grid>
+                            <Rectangle Height="1" Fill="#1C1C28" Margin="-20,0" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                    <TextBlock Text="MODELLO" Classes="label" />
+                                    <AutoCompleteBox Text="{Binding MlxModel}"
+                                                     ItemsSource="{Binding Models.DownloadedMlxModelIds}"
+                                                     FilterMode="ContainsOrdinal"
+                                                     MinimumPrefixLength="0"
+                                                     MinimumPopulateDelay="0"
+                                                     Watermark="mlx-community/Llama-3.2-3B-Instruct-4bit"
+                                                     FontFamily="Menlo,Courier New,monospace"
+                                                     FontSize="12" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Orientation="Horizontal" Spacing="8">
+                                    <StackPanel>
+                                        <TextBlock Text="HOST" Classes="label" />
+                                        <TextBox Text="{Binding MlxHost}" Width="110" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="PORTA" Classes="label" />
+                                        <TextBox Text="{Binding MlxPort}" Width="70" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel>
+                                <TextBlock Text="DRAFT MODEL (opzionale)" Classes="label" />
+                                <AutoCompleteBox Text="{Binding MlxDraftModel}"
+                                                 ItemsSource="{Binding Models.DownloadedMlxModelIds}"
+                                                 FilterMode="ContainsOrdinal"
+                                                 MinimumPrefixLength="0"
+                                                 MinimumPopulateDelay="0"
+                                                 Watermark="es. mlx-community/gemma-4-26B-A4B-it-assistant-bf16"
+                                                 FontFamily="Menlo,Courier New,monospace"
+                                                 FontSize="12" />
+                            </StackPanel>
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Classes="start" Content="▶  Avvia"      Margin="0,0,8,4" Command="{Binding StartMlxCommand}" />
+                                <Button Classes="stop"  Content="■  Ferma"      Margin="0,0,8,4" Command="{Binding StopMlxCommand}" />
+                                <Button Classes="blue"  Content="⬇  Installa VLM"
+                                        Margin="0,0,8,4"
+                                        Command="{Binding InstallMlxVlmCommand}"
+                                        IsVisible="{Binding ShowInstallVlmButton}" />
+                                <Button Content="Pulisci log" Margin="0,0,0,4"  Command="{Binding ClearMlxLogCommand}" />
+                            </WrapPanel>
+                            <TextBox x:Name="MlxLogBox"
+                                     Text="{Binding MlxLog, Mode=OneWay}"
+                                     IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                                     Height="160" Background="#07070C" Foreground="#BF5AF2"
+                                     FontFamily="Menlo,Courier New,monospace" FontSize="11"
+                                     BorderThickness="1" BorderBrush="#16161F"
+                                     Padding="12" CornerRadius="10" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ─── OPEN WEBUI ────────────────────────────────────── -->
+                    <Border Background="#12121A" CornerRadius="14" Padding="20"
+                            BorderBrush="#20202C" BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <Ellipse Width="8" Height="8" Fill="{Binding OpenWebUIRunning, Converter={StaticResource BoolToBrush}}" />
+                                    <TextBlock Text="OPEN WEBUI" Classes="section-header" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding OpenWebUIRunning, Converter={StaticResource BoolToStatus}}"
+                                           Foreground="#555562" FontSize="11" VerticalAlignment="Center" />
+                            </Grid>
+                            <Rectangle Height="1" Fill="#1C1C28" Margin="-20,0" />
+                            <StackPanel HorizontalAlignment="Left">
+                                <TextBlock Text="PORTA" Classes="label" />
+                                <TextBox Text="{Binding OpenWebUIPort}" Width="90" />
+                            </StackPanel>
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Classes="blue"  Content="⬇  Installa"  Margin="0,0,8,4" Command="{Binding InstallOpenWebUICommand}" />
+                                <Button Classes="start" Content="▶  Avvia"     Margin="0,0,8,4" Command="{Binding StartOpenWebUICommand}" />
+                                <Button Classes="stop"  Content="■  Ferma"     Margin="0,0,8,4" Command="{Binding StopOpenWebUICommand}" />
+                                <Button Content="🌐  Apri"                      Margin="0,0,8,4" Command="{Binding OpenBrowserCommand}" />
+                                <Button Content="Pulisci log"                   Margin="0,0,0,4" Command="{Binding ClearOpenWebUILogCommand}" />
+                            </WrapPanel>
+                            <TextBox x:Name="OpenWebUILogBox"
+                                     Text="{Binding OpenWebUILog, Mode=OneWay}"
+                                     IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                                     Height="160" Background="#07070C" Foreground="#5EB8FA"
+                                     FontFamily="Menlo,Courier New,monospace" FontSize="11"
+                                     BorderThickness="1" BorderBrush="#16161F"
+                                     Padding="12" CornerRadius="10" />
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- PAGE 1 — MODELLI                                              -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <Grid IsVisible="{Binding SelectedPage, Converter={StaticResource IntEqual}, ConverterParameter=1}">
+                <TabControl>
+
+                    <!-- ─── MLX / HuggingFace ──────────────────────────────── -->
+                    <TabItem Header="MLX — HuggingFace">
+                        <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16,12,16,16">
+
+                            <!-- Controls row -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding Models.MlxSearchText}"
+                                         Watermark="Cerca modello..."
+                                         Margin="0,0,8,0" />
+                                <CheckBox Grid.Column="1"
+                                          IsChecked="{Binding Models.ShowOnlyDownloaded}"
+                                          Content="Solo scaricati"
+                                          Foreground="#8E8E9C"
+                                          FontSize="12"
+                                          Margin="0,0,8,0"
+                                          VerticalAlignment="Center"/>
+                                <Button Grid.Column="2"
+                                        Classes="blue"
+                                        Content="↻  Aggiorna"
+                                        Command="{Binding Models.RefreshMlxCommand}"
+                                        VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Error / loading -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,0,0,8"
+                                        IsVisible="{Binding Models.IsLoadingMlx}">
+                                <TextBlock Text="Caricamento modelli..." Foreground="#636366" FontSize="12" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Grid.Row="1"
+                                       Text="{Binding Models.MlxError}"
+                                       Foreground="#FF453A" FontSize="12" Margin="0,0,0,8"
+                                       IsVisible="{Binding Models.MlxError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       TextWrapping="Wrap"/>
+
+                            <!-- Model list -->
+                            <ListBox Grid.Row="2"
+                                     ItemsSource="{Binding Models.FilteredMlxModels}"
+                                     Background="#0A0A0F"
+                                     BorderBrush="#20202C"
+                                     BorderThickness="1"
+                                     CornerRadius="10"
+                                     Padding="4">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:HfModel">
+                                        <Border Padding="6,5" Background="Transparent">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding ShortName}"
+                                                               FontSize="12" FontWeight="Medium"
+                                                               Foreground="#F2F2F7" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock FontSize="10" Foreground="#555562">
+                                                        <Run Text="{Binding DownloadsFormatted}"/>
+                                                        <Run Text=" downloads"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                            Spacing="5" VerticalAlignment="Center">
+                                                    <Border Background="#071A09" CornerRadius="4" Padding="6,2"
+                                                            IsVisible="{Binding IsDownloaded}">
+                                                        <TextBlock FontSize="10" Foreground="#30D158">
+                                                            <Run Text="✓ "/>
+                                                            <Run Text="{Binding DiskSizeFormatted}"/>
+                                                        </TextBlock>
+                                                    </Border>
+                                                    <ProgressBar IsVisible="{Binding IsDownloading}"
+                                                                 IsIndeterminate="True"
+                                                                 Width="60" Height="3"
+                                                                 Foreground="#BF5AF2"/>
+                                                    <Button Content="Usa"
+                                                            Classes="action-sm"
+                                                            Command="{Binding UseCommand}"
+                                                            IsVisible="{Binding IsDownloaded}"/>
+                                                    <Button Content="Elimina"
+                                                            Classes="action-sm stop"
+                                                            Command="{Binding DeleteCommand}"
+                                                            IsVisible="{Binding IsDownloaded}"/>
+                                                    <Button Content="Scarica"
+                                                            Classes="action-sm blue"
+                                                            Command="{Binding DownloadCommand}"
+                                                            IsVisible="{Binding !IsDownloaded}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- Download log -->
+                            <Grid Grid.Row="3" RowDefinitions="Auto,Auto" Margin="0,10,0,0">
+                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                                    <TextBlock Text="LOG DOWNLOAD" Classes="label" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="ghost" Content="Pulisci"
+                                            Command="{Binding Models.ClearMlxDownloadLogCommand}"/>
+                                </Grid>
+                                <TextBox Grid.Row="1"
+                                         Text="{Binding Models.MlxDownloadLog, Mode=OneWay}"
+                                         IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                                         Height="110" Background="#07070C" Foreground="#BF5AF2"
+                                         FontFamily="Menlo,Courier New,monospace" FontSize="11"
+                                         BorderThickness="1" BorderBrush="#16161F"
+                                         Padding="10" CornerRadius="8"/>
+                            </Grid>
+
+                        </Grid>
+                    </TabItem>
+
+                    <!-- ─── Ollama ──────────────────────────────────────────── -->
+                    <TabItem Header="Ollama">
+                        <Grid RowDefinitions="Auto,*,Auto" Margin="16,12,16,16">
+
+                            <!-- Pull row -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding Models.OllamaPullModel}"
+                                         Watermark="nome:tag (es. llama3.2:3b)"
+                                         Margin="0,0,8,0"/>
+                                <Button Grid.Column="1"
+                                        Classes="blue"
+                                        Content="⬇  Pull"
+                                        Margin="0,0,8,0"
+                                        Command="{Binding Models.PullOllamaModelCommand}"/>
+                                <Button Grid.Column="2"
+                                        Content="↻  Aggiorna"
+                                        Command="{Binding Models.RefreshOllamaCommand}"
+                                        IsEnabled="{Binding !Models.IsOllamaPulling}"/>
+                            </Grid>
+
+                            <!-- Model list -->
+                            <ListBox Grid.Row="1"
+                                     ItemsSource="{Binding Models.OllamaModels}"
+                                     Background="#0A0A0F"
+                                     BorderBrush="#20202C"
+                                     BorderThickness="1"
+                                     CornerRadius="10"
+                                     Padding="4">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:OllamaModel">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" Margin="6,5">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Name}"
+                                                       FontSize="12" Foreground="#F2F2F7"
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Size}"
+                                                       FontSize="11" Foreground="#555562"
+                                                       Margin="8,0" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="2"
+                                                    Content="Elimina"
+                                                    Classes="action-sm stop"
+                                                    Command="{Binding DeleteCommand}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- Ollama log -->
+                            <Grid Grid.Row="2" RowDefinitions="Auto,Auto" Margin="0,10,0,0">
+                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                                    <TextBlock Text="LOG" Classes="label" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="ghost" Content="Pulisci"
+                                            Command="{Binding Models.ClearOllamaLogCommand}"/>
+                                </Grid>
+                                <TextBox Grid.Row="1"
+                                         Text="{Binding Models.OllamaLog, Mode=OneWay}"
+                                         IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                                         Height="110" Background="#07070C" Foreground="#2DB84B"
+                                         FontFamily="Menlo,Courier New,monospace" FontSize="11"
+                                         BorderThickness="1" BorderBrush="#16161F"
+                                         Padding="10" CornerRadius="8"/>
+                            </Grid>
+
+                        </Grid>
+                    </TabItem>
+
+                </TabControl>
+            </Grid>
+
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <!-- PAGE 2 — IMPOSTAZIONI                                         -->
+            <!-- ══════════════════════════════════════════════════════════════ -->
+            <ScrollViewer IsVisible="{Binding SelectedPage, Converter={StaticResource IntEqual}, ConverterParameter=2}">
+                <StackPanel Margin="20,16,20,24" Spacing="12">
+
+                    <!-- ─── HuggingFace ───────────────────────────────────── -->
+                    <Border Background="#12121A" CornerRadius="14" Padding="20"
+                            BorderBrush="#20202C" BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <TextBlock Text="HUGGING FACE" Classes="section-header"/>
+                            <Rectangle Height="1" Fill="#1C1C28" Margin="-20,0"/>
+                            <StackPanel>
+                                <TextBlock Text="HF_TOKEN" Classes="label"/>
+                                <TextBox Text="{Binding HfToken}"
+                                         Watermark="hf_..."
+                                         PasswordChar="•"/>
+                            </StackPanel>
+                            <TextBlock Text="Opzionale. Aumenta i rate limit dell'API e permette di scaricare modelli privati."
+                                       Foreground="#555562" FontSize="11" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ─── Ollama ────────────────────────────────────────── -->
+                    <Border Background="#12121A" CornerRadius="14" Padding="20"
+                            BorderBrush="#20202C" BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <TextBlock Text="OLLAMA" Classes="section-header"/>
+                            <Rectangle Height="1" Fill="#1C1C28" Margin="-20,0"/>
+
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,6,10">
+                                    <TextBlock Text="FLASH_ATTENTION" Classes="label"/>
+                                    <TextBox Text="{Binding FlashAttention}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Margin="6,0,0,10">
+                                    <TextBlock Text="KV_CACHE_TYPE" Classes="label"/>
+                                    <TextBox Text="{Binding KvCacheType}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,6,0">
+                                    <TextBlock Text="KEEP_ALIVE" Classes="label"/>
+                                    <TextBox Text="{Binding KeepAlive}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="6,0,0,0"
+                                            VerticalAlignment="Bottom">
+                                    <CheckBox IsChecked="{Binding NewEngine}"
+                                              Content="NEW_ENGINE"
+                                              Foreground="#555562"
+                                              FontSize="11"
+                                              Margin="0,0,0,8"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="VARIABILI CUSTOM" Classes="label" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="ghost" Content="+ Aggiungi"
+                                            Command="{Binding AddOllamaEnvCommand}"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding OllamaCustomEnv}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:EnvEntry">
+                                            <Grid ColumnDefinitions="*,*,Auto" Margin="0,0,0,6">
+                                                <TextBox Grid.Column="0" Margin="0,0,5,0" Text="{Binding Key}" Watermark="NOME_VAR"/>
+                                                <TextBox Grid.Column="1" Margin="0,0,5,0" Text="{Binding Value}" Watermark="valore"/>
+                                                <Button Grid.Column="2" Classes="remove" Content="×"
+                                                        Command="{Binding RemoveCommand}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ─── MLX ───────────────────────────────────────────── -->
+                    <Border Background="#12121A" CornerRadius="14" Padding="20"
+                            BorderBrush="#20202C" BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <TextBlock Text="MLX LM" Classes="section-header"/>
+                            <Rectangle Height="1" Fill="#1C1C28" Margin="-20,0"/>
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="VARIABILI CUSTOM" Classes="label" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="ghost" Content="+ Aggiungi"
+                                            Command="{Binding AddMlxEnvCommand}"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding MlxCustomEnv}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:EnvEntry">
+                                            <Grid ColumnDefinitions="*,*,Auto" Margin="0,0,0,6">
+                                                <TextBox Grid.Column="0" Margin="0,0,5,0" Text="{Binding Key}" Watermark="NOME_VAR"/>
+                                                <TextBox Grid.Column="1" Margin="0,0,5,0" Text="{Binding Value}" Watermark="valore"/>
+                                                <Button Grid.Column="2" Classes="remove" Content="×"
+                                                        Command="{Binding RemoveCommand}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ─── Open WebUI ────────────────────────────────────── -->
+                    <Border Background="#12121A" CornerRadius="14" Padding="20"
+                            BorderBrush="#20202C" BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <TextBlock Text="OPEN WEBUI" Classes="section-header"/>
+                            <Rectangle Height="1" Fill="#1C1C28" Margin="-20,0"/>
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="VARIABILI CUSTOM" Classes="label" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="ghost" Content="+ Aggiungi"
+                                            Command="{Binding AddOpenWebUIEnvCommand}"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding OpenWebUICustomEnv}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:EnvEntry">
+                                            <Grid ColumnDefinitions="*,*,Auto" Margin="0,0,0,6">
+                                                <TextBox Grid.Column="0" Margin="0,0,5,0" Text="{Binding Key}" Watermark="NOME_VAR"/>
+                                                <TextBox Grid.Column="1" Margin="0,0,5,0" Text="{Binding Value}" Watermark="valore"/>
+                                                <Button Grid.Column="2" Classes="remove" Content="×"
+                                                        Command="{Binding RemoveCommand}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+        </Panel>
+    </Grid>
+</Window>

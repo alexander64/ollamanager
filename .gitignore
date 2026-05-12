@@ -1,0 +1,19 @@
+# Build output
+bin/
+obj/
+publish/
+dist/
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# .NET
+*.user
+*.suo
+.vs/
+*.swp
+
+# Python (gen_icons)
+__pycache__/
+*.pyc
