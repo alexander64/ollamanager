@@ -287,11 +287,9 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Bottom">
                                     <TextBlock Text="KV BITS" Classes="label" />
-                                    <ComboBox SelectedItem="{Binding MlxKvBits}" Width="80">
-                                        <ComboBoxItem Content="" />
-                                        <ComboBoxItem Content="4" />
-                                        <ComboBoxItem Content="8" />
-                                    </ComboBox>
+                                    <ComboBox ItemsSource="{Binding KvBitsOptions}"
+                                              SelectedItem="{Binding MlxKvBits}"
+                                              Width="80" />
                                 </StackPanel>
                             </Grid>
                             <WrapPanel Orientation="Horizontal">

@@ -145,6 +145,8 @@ public class MainViewModel : ReactiveObject, IDisposable
         set => this.RaiseAndSetIfChanged(ref _mlxKvBits, value);
     }
 
+    public string[] KvBitsOptions { get; } = ["", "4", "8"];
+
     private string _mlxHost;
     public string MlxHost
     {
@@ -543,14 +545,16 @@ public class MainViewModel : ReactiveObject, IDisposable
                     AppendMlxLog("[mlx-vlm non installato — usa il pulsante 'Installa VLM' prima di avviare]");
                     return;
                 }
+                // mlx_vlm.server supporta --kv-bits
                 _mlx.Start("python3",
                     $"-m mlx_vlm.server --model {MlxModel} --port {MlxPort} --host {MlxHost}{draft}{kvBits}",
                     BuildMlxEnv(), MlxDataDir);
             }
             else
             {
+                // mlx_lm.server NON supporta --kv-bits — ignorato
                 _mlx.Start("mlx_lm.server",
-                    $"--model {MlxModel} --port {MlxPort} --host {MlxHost}{draft}{kvBits}",
+                    $"--model {MlxModel} --port {MlxPort} --host {MlxHost}{draft}",
                     BuildMlxEnv(), MlxDataDir);
             }
             MlxRunning = true;
