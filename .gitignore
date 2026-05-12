@@ -17,3 +17,7 @@ dist/
 # Python (gen_icons)
 __pycache__/
 *.pyc
+
+# Secrets / local data
+.webui_secret_key
+Library/
