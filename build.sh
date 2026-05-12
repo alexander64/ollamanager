@@ -93,7 +93,8 @@ echo "  Installazione pacchetti (mlx-lm, mlx-vlm, huggingface-hub)..."
 "$PYTHON_RES/bin/python3" -m pip install \
     mlx-lm \
     mlx-vlm \
-    "huggingface_hub[hf_transfer]" \
+    huggingface_hub \
+    hf_transfer \
     --quiet
 
 echo "  Patching shebang entry points..."
