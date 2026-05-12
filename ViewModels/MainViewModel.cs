@@ -138,6 +138,13 @@ public class MainViewModel : ReactiveObject, IDisposable
         set => this.RaiseAndSetIfChanged(ref _mlxDraftModel, value);
     }
 
+    private string _mlxKvBits;
+    public string MlxKvBits
+    {
+        get => _mlxKvBits;
+        set => this.RaiseAndSetIfChanged(ref _mlxKvBits, value);
+    }
+
     private string _mlxHost;
     public string MlxHost
     {
@@ -212,6 +219,7 @@ public class MainViewModel : ReactiveObject, IDisposable
         _keepAlive      = _db.Get("OLLAMA_KEEP_ALIVE", "1h");
         _mlxModel       = _db.Get("MLX_MODEL", "mlx-community/Llama-3.2-3B-Instruct-4bit");
         _mlxDraftModel  = _db.Get("MLX_DRAFT_MODEL", "");
+        _mlxKvBits      = _db.Get("MLX_KV_BITS", "");
         _mlxHost        = _db.Get("MLX_HOST", "127.0.0.1");
         _mlxPort        = _db.Get("MLX_PORT", "8081");
         _openWebUIPort  = _db.Get("OPENWEBUI_PORT", "8080");
@@ -252,7 +260,7 @@ public class MainViewModel : ReactiveObject, IDisposable
             .Subscribe(_ => SaveSettings())
             .DisposeWith(_subscriptions);
 
-        this.WhenAnyValue(x => x.OpenWebUIPort)
+        this.WhenAnyValue(x => x.OpenWebUIPort, x => x.MlxKvBits)
             .Throttle(TimeSpan.FromMilliseconds(600))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => SaveSettings())
@@ -348,6 +356,7 @@ public class MainViewModel : ReactiveObject, IDisposable
 
             _db.Set("MLX_MODEL", MlxModel);
             _db.Set("MLX_DRAFT_MODEL", MlxDraftModel);
+            _db.Set("MLX_KV_BITS", MlxKvBits);
             _db.Set("MLX_HOST", MlxHost);
             _db.Set("MLX_PORT", MlxPort);
             _db.Set("MLX_CUSTOM_ENV", JsonSerializer.Serialize(
@@ -524,7 +533,8 @@ public class MainViewModel : ReactiveObject, IDisposable
                 TryKillPid(pid);
         try
         {
-            var draft = string.IsNullOrWhiteSpace(MlxDraftModel) ? "" : $" --draft-model {MlxDraftModel.Trim()}";
+            var draft  = string.IsNullOrWhiteSpace(MlxDraftModel) ? "" : $" --draft-model {MlxDraftModel.Trim()}";
+            var kvBits = string.IsNullOrWhiteSpace(MlxKvBits)    ? "" : $" --kv-bits {MlxKvBits.Trim()}";
             var isVlm = HuggingFaceService.IsVlmModel(MlxModel, MlxDataDir);
             if (isVlm)
             {
@@ -534,13 +544,13 @@ public class MainViewModel : ReactiveObject, IDisposable
                     return;
                 }
                 _mlx.Start("python3",
-                    $"-m mlx_vlm.server --model {MlxModel} --port {MlxPort} --host {MlxHost}{draft}",
+                    $"-m mlx_vlm.server --model {MlxModel} --port {MlxPort} --host {MlxHost}{draft}{kvBits}",
                     BuildMlxEnv(), MlxDataDir);
             }
             else
             {
                 _mlx.Start("mlx_lm.server",
-                    $"--model {MlxModel} --port {MlxPort} --host {MlxHost}{draft}",
+                    $"--model {MlxModel} --port {MlxPort} --host {MlxHost}{draft}{kvBits}",
                     BuildMlxEnv(), MlxDataDir);
             }
             MlxRunning = true;
