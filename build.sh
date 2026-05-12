@@ -67,8 +67,8 @@ PLIST
 # open-webui NON è incluso — viene installato on-demand dall'app stessa
 # tramite pip bundled. Aggiorna PBS_DATE/PBS_PY_VER se necessario.
 
-PBS_PY_VER="3.11.12"
-PBS_DATE="20250409"
+PBS_PY_VER="3.13.13"
+PBS_DATE="20260510"
 PBS_TAG="cpython-${PBS_PY_VER}+${PBS_DATE}-aarch64-apple-darwin-install_only"
 PBS_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PBS_DATE}/${PBS_TAG}.tar.gz"
 PBS_CACHE_DIR=".build_cache"

@@ -31,7 +31,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .build_cache
-          key: pbs-python-${{ runner.arch }}-3.11.12-20250409
+          key: pbs-python-${{ runner.arch }}-3.13.13-20260510
 
       - name: Build (includes Python embed)
         run: bash build.sh
