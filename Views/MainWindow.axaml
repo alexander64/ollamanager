@@ -244,6 +244,10 @@
                                     <Border Background="#1A0A2E" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding MlxEngineName}" FontSize="10" Foreground="#BF5AF2" FontWeight="Bold"/>
                                     </Border>
+                                    <ComboBox ItemsSource="{Binding EngineModeOptions}"
+                                              SelectedItem="{Binding MlxEngineMode}"
+                                              FontSize="11" Height="24"
+                                              VerticalAlignment="Center" />
                                 </StackPanel>
                                 <TextBlock Grid.Column="2"
                                            Text="{Binding MlxRunning, Converter={StaticResource BoolToStatus}}"

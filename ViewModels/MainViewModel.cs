@@ -100,6 +100,15 @@ public class MainViewModel : ReactiveObject, IDisposable
         private set => this.RaiseAndSetIfChanged(ref _mlxVlmInstalled, value);
     }
 
+    private string _mlxEngineMode = "Auto";
+    public string MlxEngineMode
+    {
+        get => _mlxEngineMode;
+        set => this.RaiseAndSetIfChanged(ref _mlxEngineMode, value);
+    }
+
+    public string[] EngineModeOptions { get; } = ["Auto", "LM", "VLM"];
+
     private string _mlxEngineName = "LM";
     public string MlxEngineName
     {
@@ -222,6 +231,7 @@ public class MainViewModel : ReactiveObject, IDisposable
         _mlxModel       = _db.Get("MLX_MODEL", "mlx-community/Llama-3.2-3B-Instruct-4bit");
         _mlxDraftModel  = _db.Get("MLX_DRAFT_MODEL", "");
         _mlxKvBits      = _db.Get("MLX_KV_BITS", "");
+        _mlxEngineMode  = _db.Get("MLX_ENGINE_MODE", "Auto");
         _mlxHost        = _db.Get("MLX_HOST", "127.0.0.1");
         _mlxPort        = _db.Get("MLX_PORT", "8081");
         _openWebUIPort  = _db.Get("OPENWEBUI_PORT", "8080");
@@ -243,11 +253,20 @@ public class MainViewModel : ReactiveObject, IDisposable
         LoadCustomEnv(_db.Get("MLX_CUSTOM_ENV", "[]"), MlxCustomEnv);
         LoadCustomEnv(_db.Get("OPENWEBUI_CUSTOM_ENV", "[]"), OpenWebUICustomEnv);
 
-        // update engine badge whenever MlxModel changes
-        this.WhenAnyValue(x => x.MlxModel)
+        // update engine badge whenever MlxModel or MlxEngineMode changes
+        this.WhenAnyValue(x => x.MlxModel, x => x.MlxEngineMode)
             .Throttle(TimeSpan.FromMilliseconds(300))
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(m => MlxEngineName = HuggingFaceService.IsVlmModel(m, MlxDataDir) ? "VLM" : "LM")
+            .Subscribe(t =>
+            {
+                var (model, mode) = t;
+                MlxEngineName = mode switch
+                {
+                    "VLM" => "VLM",
+                    "LM"  => "LM",
+                    _     => HuggingFaceService.IsVlmModel(model, MlxDataDir) ? "VLM" : "LM"
+                };
+            })
             .DisposeWith(_subscriptions);
 
         _showInstallVlmButton = this
@@ -262,7 +281,7 @@ public class MainViewModel : ReactiveObject, IDisposable
             .Subscribe(_ => SaveSettings())
             .DisposeWith(_subscriptions);
 
-        this.WhenAnyValue(x => x.OpenWebUIPort, x => x.MlxKvBits)
+        this.WhenAnyValue(x => x.OpenWebUIPort, x => x.MlxKvBits, x => x.MlxEngineMode)
             .Throttle(TimeSpan.FromMilliseconds(600))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => SaveSettings())
@@ -359,6 +378,7 @@ public class MainViewModel : ReactiveObject, IDisposable
             _db.Set("MLX_MODEL", MlxModel);
             _db.Set("MLX_DRAFT_MODEL", MlxDraftModel);
             _db.Set("MLX_KV_BITS", MlxKvBits);
+            _db.Set("MLX_ENGINE_MODE", MlxEngineMode);
             _db.Set("MLX_HOST", MlxHost);
             _db.Set("MLX_PORT", MlxPort);
             _db.Set("MLX_CUSTOM_ENV", JsonSerializer.Serialize(
@@ -537,7 +557,12 @@ public class MainViewModel : ReactiveObject, IDisposable
         {
             var draft  = string.IsNullOrWhiteSpace(MlxDraftModel) ? "" : $" --draft-model {MlxDraftModel.Trim()}";
             var kvBits = string.IsNullOrWhiteSpace(MlxKvBits)    ? "" : $" --kv-bits {MlxKvBits.Trim()}";
-            var isVlm = HuggingFaceService.IsVlmModel(MlxModel, MlxDataDir);
+            var isVlm = MlxEngineMode switch
+            {
+                "VLM" => true,
+                "LM"  => false,
+                _     => HuggingFaceService.IsVlmModel(MlxModel, MlxDataDir)
+            };
             if (isVlm)
             {
                 if (!MlxVlmInstalled)
